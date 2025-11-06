@@ -29,7 +29,7 @@ def get_F(H, N):
 
     return F
 
-def get_M_and_g(H, N):
+def get_step_response(H, N):
     # get len of numerator (number of zeros)
     len_zeros = H.num[0][0].shape[0]
 
@@ -76,7 +76,7 @@ def get_G(g, N_u, N):
 # generate all matrices
 def generate_matrices(H, N_u, N):
     F = get_F(H, N)
-    g = get_M_and_g(H, N)
+    g = get_step_response(H, N)
     G = get_G(g, N_u, N)
 
     return F, G
