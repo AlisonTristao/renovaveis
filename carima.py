@@ -58,9 +58,9 @@ def get_step_response(H, N):
     g = M[:, 0]
 
     # M without last column
-    #M = M[:, :-1]
+    M = M[:, :-1]
 
-    return g
+    return g, M
 
 def get_G(g, N_u, N):
     # G = N x N_u
@@ -76,7 +76,7 @@ def get_G(g, N_u, N):
 # generate all matrices
 def generate_matrices(H, N_u, N):
     F = get_F(H, N)
-    g = get_step_response(H, N)
+    g, M = get_step_response(H, N)
     G = get_G(g, N_u, N)
 
-    return F, G
+    return F, G, M
