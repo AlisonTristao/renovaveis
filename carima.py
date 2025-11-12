@@ -74,9 +74,9 @@ def get_G(g, N_u, N):
     return G
 
 # generate all matrices
-def generate_matrices(H, N_u, N):
+def generate_matrices(H, N_u, N, Ts):
     F = get_F(H, N)
     g, M = get_step_response(H, N)
     G = get_G(g, N_u, N)
 
-    return F, G, M
+    return F, G/Ts, M/Ts
