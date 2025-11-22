@@ -57,8 +57,8 @@ def get_step_response(H, N):
     # g = first column of M
     g = M[:, 0]
 
-    # M without last column
-    M = M[:, :-1]
+    # M without the first column
+    M = M[:, 1:]
 
     return g, M
 

@@ -1,25 +1,22 @@
 import control as ctrl
+import numpy as np
 
 class Plant:
-    def __init__(self, transfer_function, saturation=None):
+    def __init__(self, transfer_function, q_transfer_function=None, saturation=None):
         self.system = ctrl.tf(transfer_function)
+        q_system = ctrl.tf(q_transfer_function) if q_transfer_function is not None else self.system
+        self.__Ts = self.system.dt  # sampling time
+
         # get polynomial coefficients
         alpha = self.system.den[0][0].tolist()[1:]  # exclude leading 1
         alpha = [-a for a in alpha]  # change sign for difference equation
         beta = self.system.num[0][0].tolist()
-        gama = [0]  # no disturbance by default
+        gama = q_system.num[0][0].tolist()
+
         if saturation is None:
             saturation = float('inf')  # no saturation by default
+    
         self.__set_params(alpha, beta, gama, saturation)
-
-    def set_params_perturbation(self, q_transfer_function):
-        q_system = ctrl.tf(q_transfer_function)
-        gama = q_system.num[0][0].tolist()
-        self.__gama = [gama[len(gama) - 1 - i] for i in range(len(gama))]
-        # initialize past disturbance values
-        self.__q = [0 for _ in range(len(gama))]
-        # debug print
-        print(f"Disturbance model updated with gama: {self.__gama}")
 
     def __set_params(self, alpha, beta, gama, saturation):
         # store coefficients in reverse order
@@ -34,7 +31,16 @@ class Plant:
         self.__saturation = saturation
 
         # debug print
-        print(f"Plant initialized with alpha: {self.__alpha}, beta: {self.__beta}, gama: {self.__gama}, saturation: {self.__saturation}")
+        #print(f"Plant initialized with alpha: {self.__alpha}, beta: {self.__beta}, gama: {self.__gama}, saturation: {self.__saturation}")
+    def y_past(self):
+        return np.array(self.__y.copy()[::-1])
+    
+    def u_past(self):
+        # the first element is u(k), not the past value - return values inversed without the first element
+        return np.array((self.__u.copy()[1:])[::-1])
+    
+    def q_past(self):
+        return np.array((self.__q.copy()[1:])[::-1])
 
     def step(self, u, q=0):
         # store u and q
@@ -46,8 +52,8 @@ class Plant:
         # calculate y response
         y = 0
         y += sum(self.__y[i] * self.__alpha[i] for i in range(len(self.__y)))
-        y += sum(self.__u[i] * self.__beta[i] for i in range(len(self.__u)))
-        y += sum(self.__q[i] * self.__gama[i] for i in range(len(self.__q)))
+        y += sum(self.__u[i]/self.__Ts * self.__beta[i] for i in range(len(self.__u)))
+        y += sum(self.__q[i]/self.__Ts * self.__gama[i] for i in range(len(self.__q)))
 
         # saturate y
         y = min(y, self.__saturation)
