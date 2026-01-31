@@ -12,7 +12,7 @@ def ss_siso(Gu: ct.TransferFunction):
     den_u = np.array(Gu.den[0][0], dtype=float)#.ravel()
 
     a = den_u[:]            # [1, a1, ..., an]
-    b = num_u[:]            # [b0, b1, ..., bn]
+    b = num_u[:]/dt            # [b0, b1, ..., bn]
     nx = len(a) + len(b) -2 # estados y + estados u
 
     # matrizes do sistema
